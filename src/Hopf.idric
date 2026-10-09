@@ -165,7 +165,7 @@ times = binary_op "*"
 
 public export
 divided_by : float_expression → float_expression → float_expression
-divided_by = binary_op "/"
+divided_by = binary_op "÷"
 
 public export
 rotation_x_y : float_expression

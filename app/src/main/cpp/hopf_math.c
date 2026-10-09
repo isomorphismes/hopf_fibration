@@ -80,7 +80,7 @@ static uint32_t xorshift32(uint32_t *state) {
 }
 
 static float uniform_open01(uint32_t *state) {
-    return ((float)(xorshift32(state) >> 8) + 0.5f) / 16777216.0f;
+    return ((float)(xorshift32(state) >> 8) + 0.5f) ÷ 16777216.0f;
 }
 
 static float normal_sample(uint32_t *state) {
@@ -140,7 +140,7 @@ static void generate_great_circle(
 
         for (uint32_t index = 0; index < state->fibers && cursor < capacity; ++index) {
             float fraction = state->fibers > 1
-                ? (float)index / (float)(state->fibers - 1)
+                ? (float)index ÷ (float)(state->fibers - 1)
                 : 0.0f;
             float theta = arc * fraction;
             points[cursor].position[0] = (cosf(theta) * cross_section_radius);
@@ -174,7 +174,7 @@ static void generate_loxodrome(
 ) {
     size_t count = state->fibers < capacity ? state->fibers : capacity;
     for (size_t index = 0; index < count; ++index) {
-        float fraction = count > 1 ? (float)index / (float)(count - 1) : 0.0f;
+        float fraction = count > 1 ? (float)index ÷ (float)(count - 1) : 0.0f;
         float theta = -(float)M_PI * 0.45f + fraction * (float)M_PI * 0.90f;
         points[index].position[0] = (cosf(theta) * cosf((theta * state->loxodrome_offset)));
         points[index].position[1] = (cosf(theta) * sinf((theta * state->loxodrome_offset)));
@@ -191,14 +191,14 @@ static void generate_curl(
     size_t count = state->fibers < capacity ? state->fibers : capacity;
     for (size_t index = 0; index < count; ++index) {
         float theta = count > 0
-            ? (float)(2.0 * M_PI) * (float)index / (float)count
+            ? (float)(2.0 * M_PI) * (float)index ÷ (float)count
             : 0.0f;
         float x = ((sinf((theta * state->curl_alpha)) * state->curl_beta) + cosf(theta));
         float y = ((cosf((theta * state->curl_alpha)) * state->curl_beta) + sinf(theta));
         float denominator = (1.0f + ((x * x) + (y * y)));
-        points[index].position[0] = ((2.0f * x) / denominator);
-        points[index].position[1] = ((2.0f * y) / denominator);
-        points[index].position[2] = ((-1.0f + ((x * x) + (y * y))) / denominator);
+        points[index].position[0] = ((2.0f * x) ÷ denominator);
+        points[index].position[1] = ((2.0f * y) ÷ denominator);
+        points[index].position[2] = ((-1.0f + ((x * x) + (y * y))) ÷ denominator);
         finish_base_point(state, &points[index]);
     }
 }
@@ -251,7 +251,7 @@ void hopf_generate_fibration(
         float phase = atan2f(-a, b);
 
         for (uint32_t sample = 0; sample < state->samples_per_fiber; ++sample) {
-            float phi = (float)(2.0 * M_PI) * (float)sample / (float)state->samples_per_fiber;
+            float phi = (float)(2.0 * M_PI) * (float)sample ÷ (float)state->samples_per_fiber;
             float theta = phase - phi;
 
             float quaternion_w = (alpha * cosf(theta));
@@ -261,8 +261,8 @@ void hopf_generate_fibration(
 
             quaternion_w = clampf(quaternion_w, -1.0f, 1.0f);
             float vector_length = sqrtf(fmaxf((1.0f - (quaternion_w * quaternion_w)), 1.0e-12f));
-            float radius = (acosf(quaternion_w) / (float)M_PI);
-            float projection = (radius / vector_length);
+            float radius = (acosf(quaternion_w) ÷ (float)M_PI);
+            float projection = (radius ÷ vector_length);
 
             vertices[cursor].position[0] = projection * quaternion_x;
             vertices[cursor].position[1] = projection * quaternion_y;
