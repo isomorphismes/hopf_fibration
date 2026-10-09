@@ -1,0 +1,9 @@
+/build/
+/src/build/
+/app/build/
+/app/.cxx/
+/.gradle/
+/.ai-ci-ick/
+/.idric-toolchain/
+/.ick-toolchains/
+/.ick-*-source/

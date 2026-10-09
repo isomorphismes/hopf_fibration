@@ -4,70 +4,87 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  compilers:
+    uses: ./.github/workflows/ick-compilers.yml
+
+  math:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Check out the qualified Idriç compiler
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: isomorphisms/Idric
+          ref: 94dfd99bd3e376507fedc8611053b7173b2519f0
+          path: .idric-toolchain
+          persist-credentials: false
+      - name: Check out the build contract
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: isomorphisms/ai-ci
+          ref: f5f2439aa40c0376ec16097ab7bb8360b3d74d5e
+          path: .ai-ci-ick
+          persist-credentials: false
+      - name: Build the pinned Idriç compiler
+        run: make -f scripts/host-check.mk bootstrap
+      - name: Build and qualify host ICK
+        id: ick
+        uses: isomorphisms/ai-ci/ick-host@f5f2439aa40c0376ec16097ab7bb8360b3d74d5e
+      - name: Verify generation, mathematical semantics and declared toolchains
+        run: make -f scripts/host-check.mk check ICK="${{ steps.ick.outputs.compiler }}" ICK_FLAGS="${{ steps.ick.outputs.link_flags }}"
 
-      - name: Install Idriç bootstrap dependency
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chezscheme
-
-      - name: Build pinned Idriç compiler
-        shell: bash
-        run: |
-          set -euxo pipefail
-          idric_sha=61970be77769f607cca8650bf424c0f0b22ddee7
-          idric_dir="$RUNNER_TEMP/Idric"
-          git init "$idric_dir"
-          git -C "$idric_dir" remote add origin https://github.com/isomorphisms/Idric.git
-          git -C "$idric_dir" fetch --depth 1 origin "$idric_sha"
-          git -C "$idric_dir" checkout --detach FETCH_HEAD
-          make -C "$idric_dir" bootstrap SCHEME=scheme
-          "$idric_dir/build/exec/idris2" --version
-          echo "IDRIC=$idric_dir/build/exec/idris2" >> "$GITHUB_ENV"
-          echo "IDRIS2_PREFIX=$idric_dir/bootstrap-build" >> "$GITHUB_ENV"
-
-      - name: Verify Idriç-generated Hopf boundary
-        run: sh scripts/regenerate-hopf-math.sh --check
-
-      - name: Test generated Hopf math
-        run: |
-          cc -std=c11 -Wall -Wextra -Wpedantic -Werror \
-            -Iapp/src/main/cpp \
-            app/src/main/cpp/hopf_math.c tests/hopf_math_test.c \
-            -lm -o "$RUNNER_TEMP/hopf-math-test"
-          "$RUNNER_TEMP/hopf-math-test"
-
-      - uses: actions/setup-java@v4
+  build:
+    needs: [math, compilers]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Check out the qualified Android compiler interface
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: isomorphisms/ai-ci
+          ref: f5f2439aa40c0376ec16097ab7bb8360b3d74d5e
+          path: .ai-ci-ick
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: hopf-ick-*
+          path: .ick-toolchains
+          merge-multiple: true
+      - name: Restore all three installed ICK compiler stages
+        run: make -f scripts/ick-toolchains.mk restore
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
         with:
           distribution: temurin
           java-version: '17'
-
-      - uses: android-actions/setup-android@v3
-
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
       - name: Install Android toolchain
-        run: |
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
-
-      - uses: gradle/actions/setup-gradle@v4
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.14206865" "cmake;3.22.1"
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
         with:
           gradle-version: '9.5.0'
-
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
-
       - name: Verify native ABIs
         run: |
           unzip -l app/build/outputs/apk/debug/app-debug.apk > /tmp/apk-files
           grep -q 'lib/arm64-v8a/libhopf.so' /tmp/apk-files
           grep -q 'lib/armeabi-v7a/libhopf.so' /tmp/apk-files
           grep -q 'lib/x86_64/libhopf.so' /tmp/apk-files
-
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: hopf-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
