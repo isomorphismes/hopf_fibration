@@ -18,10 +18,18 @@ The useful state in Walczyk's explorer is small:
 The Android build consumes checked-in `app/src/main/cpp/hopf_math.[ch]` artifacts generated from the Idriç source. This keeps the APK build independent of an Idriç bootstrap while making hand-edited C math drift a CI failure. Run:
 
 ```sh
-IDRIC=/path/to/Idric/build/exec/idris2 sh scripts/regenerate-hopf-math.sh
+IDRIC=/path/to/Idric/_/build/exec/idris2 sh scripts/regenerate-hopf-math.sh
 ```
 
-or use `--check` to verify the checked-in artifacts without replacing them. CI uses pinned Idriç commit `61970be77769f607cca8650bf424c0f0b22ddee7` for this check.
+or use `--check` to verify the checked-in artifacts without replacing them. CI uses pinned Idriç commit `94dfd99bd3e376507fedc8611053b7173b2519f0` for this check.
+
+The generated C and the Android shell use the literal binary division glyph
+`÷`. Both are compiled by pinned ICK, followed by NDK assembly and linking.
+The NDK-owned `native_app_glue` remains an unchanged platform dependency. The
+shared CMake interface requires qualified compiler stages in
+`build/ick/<ABI>` and its matching ai-ci checkout in `.ai-ci-ick`; the workflows
+and F-Droid recipe prepare these exact inputs. See
+[the compiler stages and acceptance evidence](division-migration.md).
 
 The C ABI deliberately remains the one introduced by the first phone slice. It has two explicit stages:
 
@@ -74,7 +82,7 @@ The replacement boundary is now explicit rather than deferred:
 
 - authored mathematical source: `src/Hopf.idric`;
 - source-to-C emitters: `src/GenerateHeader.idric` and `src/GenerateSource.idric`;
-- checked-in NDK artifacts: `app/src/main/cpp/hopf_math.[ch]`;
+- checked-in ICK C artifacts: `app/src/main/cpp/hopf_math.[ch]`;
 - native Android shell: `app/src/main/cpp/hopf_android.c`.
 
 The shell asks only for default state, base-point/vertex counts, S2 base points, and fiber vertices. It owns allocation, GLES upload/draw, lifecycle, and touch-derived camera state. This keeps platform glue thin without forcing the phone build to carry the compiler or an Idriç runtime.

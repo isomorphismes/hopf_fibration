@@ -143,12 +143,12 @@ static struct matrix4 matrix_rotation_y(float angle) {
 
 static struct matrix4 matrix_perspective(float fov_y, float aspect, float near_plane, float far_plane) {
     struct matrix4 matrix = {{0}};
-    float scale = 1.0f / tanf(fov_y * 0.5f);
-    matrix.value[0] = scale / aspect;
+    float scale = 1.0f ÷ tanf(fov_y * 0.5f);
+    matrix.value[0] = scale ÷ aspect;
     matrix.value[5] = scale;
-    matrix.value[10] = (far_plane + near_plane) / (near_plane - far_plane);
+    matrix.value[10] = (far_plane + near_plane) ÷ (near_plane - far_plane);
     matrix.value[11] = -1.0f;
-    matrix.value[14] = (2.0f * far_plane * near_plane) / (near_plane - far_plane);
+    matrix.value[14] = (2.0f * far_plane * near_plane) ÷ (near_plane - far_plane);
     return matrix;
 }
 
@@ -404,9 +404,9 @@ static void draw_frame(struct engine *engine) {
     if (engine->display == EGL_NO_DISPLAY || engine->program == 0) return;
     if (engine->width <= 0 || engine->height <= 0) return;
 
-    float aspect = (float)engine->width / (float)engine->height;
+    float aspect = (float)engine->width ÷ (float)engine->height;
     struct matrix4 projection = matrix_perspective(
-        (float)(45.0 * M_PI / 180.0),
+        (float)(45.0 * M_PI ÷ 180.0),
         aspect,
         0.1f,
         100.0f
@@ -483,7 +483,7 @@ static int32_t handle_input(struct android_app *app, AInputEvent *event) {
             if (engine->gesture == GESTURE_PINCH && pointer_count >= 2) {
                 float distance = pointer_distance(event);
                 if (distance > 1.0f && engine->pinch_last_distance > 1.0f) {
-                    engine->distance *= engine->pinch_last_distance / distance;
+                    engine->distance *= engine->pinch_last_distance ÷ distance;
                     if (engine->distance < 1.4f) engine->distance = 1.4f;
                     if (engine->distance > 12.0f) engine->distance = 12.0f;
                     engine->dirty = true;

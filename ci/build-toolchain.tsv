@@ -1,0 +1,6 @@
+build_id	target	toolchain	ick_revision	ick_status	ick_evidence
+generated-math-test	x86_64-linux	ick	c61e448251744a2f40ad743ebef1a027bdcd2f9d	qualified	docs/division-migration.md
+owned-android-c	android-api26-armeabi-v7a-arm64-v8a-x86_64	ick	c61e448251744a2f40ad743ebef1a027bdcd2f9d	qualified	docs/division-migration.md
+android-assembly-link	android-api26-armeabi-v7a-arm64-v8a-x86_64	ndk	c61e448251744a2f40ad743ebef1a027bdcd2f9d	gap:standalone-Android-assembler-linker-and-system-runtime	docs/division-migration.md
+upstream-native-app-glue	android-api26-armeabi-v7a-arm64-v8a-x86_64	ndk	c61e448251744a2f40ad743ebef1a027bdcd2f9d	gap:unmodified-NDK-owned-platform-glue-outside-qualified-owned-source-set	docs/division-migration.md
+apk-resources-packaging	android-sdk36	ndk	c61e448251744a2f40ad743ebef1a027bdcd2f9d	gap:Android-SDK-resources-and-APK-packaging	docs/division-migration.md
