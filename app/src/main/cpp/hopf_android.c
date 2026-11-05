@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "hopf_math.h"
+#include "charcoal.h"
 
 #define LOG_TAG "Hopf"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -418,7 +419,8 @@ static void draw_frame(struct engine *engine) {
     struct matrix4 view_model = matrix_multiply(view, model);
     struct matrix4 mvp = matrix_multiply(projection, view_model);
 
-    glClearColor(0.035f, 0.04f, 0.055f, 1.0f);
+    const float background ← (float)(CHARCOAL_BACKGROUND & 0xffu) ÷ 255.0f;
+    glClearColor(background, background, background, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(engine->program);
